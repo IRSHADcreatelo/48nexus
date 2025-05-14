@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AI-powered brand story generator">
+    <title>NexusStory AI | Brand Narrative Generator</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>">
+    
+    <!-- CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #f43f5e;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --gradient: linear-gradient(135deg, #6366f1, #8b5cf6, #d946ef);
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+            color: var(--dark);
+            min-height: 100vh;
+        }
+        
+        .hero-section {
+            background: var(--gradient);
+            color: white;
+            padding: 5rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd' opacity='0.2'%3E%3Cg fill='%23ffffff' fill-opacity='0.2'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        
+        .title-font {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .form-control, .form-select {
+            border-radius: 8px;
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            border: none;
+            padding: 12px 24px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        .btn-outline {
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            background: transparent;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .story-container {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .story-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .story-container::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        
+        .story-container::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 4px;
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            backdrop-filter: blur(5px);
+        }
+        
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .floating {
+            animation: floating 6s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero-section text-center">
+        <div class="container position-relative">
+            <h1 class="title-font display-4 fw-bold mb-3">NexusStory AI</h1>
+            <p class="lead fs-3 mb-5">Craft compelling brand narratives powered by artificial intelligence</p>
+            <div class="floating d-none d-md-inline-block">
+                <svg class="floating" width="150" height="150" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card mb-5">
+                    <div class="card-body p-4">
+                        <h2 class="h4 fw-semibold mb-4"><i class="mdi mdi-auto-fix mr-2"></i> Story Generator</h2>
+                        <form id="storyForm" class="row g-3">
+                            <div class="col-md-6">
+                                <label for="name" class="form-label">Company Name</label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="website_url" class="form-label">Website URL</label>
+                                <input type="url" class="form-control" id="website_url" name="website_url" required>
+                            </div>
+                            <div class="col-12">
+                                <label for="tagline" class="form-label">Company Tagline</label>
+                                <input type="text" class="form-control" id="tagline" name="tagline" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="tone" class="form-label">Writing Tone</label>
+                                <select class="form-select" id="tone" name="tone">
+                                    <option value="professional">Professional</option>
+                                    <option value="friendly">Friendly</option>
+                                    <option value="inspirational">Inspirational</option>
+                                    <option value="innovative">Innovative</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="length" class="form-label">Story Length</label>
+                                <select class="form-select" id="length" name="length">
+                                    <option value="short">Short (50-100 words)</option>
+                                    <option value="medium" selected>Medium (150-250 words)</option>
+                                    <option value="long">Long (300-500 words)</option>
+                                </select>
+                            </div>
+                            <div class="col-12 mt-4">
+                                <button type="submit" class="btn btn-primary w-100 pulse">
+                                    <i class="mdi mdi-sparkles mr-2"></i> Generate Brand Story
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Results Section -->
+                <div id="results" class="card d-none">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h2 id="storyTitle" class="h4 fw-semibold m-0"><i class="mdi mdi-book-open-page-variant mr-2"></i> Your Brand Story</h2>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown">
+                                    <i class="mdi mdi-download"></i> Export
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#" id="downloadPdf"><i class="mdi mdi-file-pdf-box"></i> PDF</a></li>
+                                    <li><a class="dropdown-item" href="#" id="downloadDoc"><i class="mdi mdi-file-word-box"></i> Word</a></li>
+                                    <li><a class="dropdown-item" href="#" id="copyStory"><i class="mdi mdi-content-copy"></i> Copy Text</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div id="brandStory" class="story-container"></div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <div id="storyMeta" class="text-muted small"></div>
+                            <button id="regenerateBtn" class="btn btn-outline">
+                                <i class="mdi mdi-autorenew"></i> Regenerate
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay d-none">
+        <div class="spinner mb-3"></div>
+        <p class="text-white mt-3">Generating your brand story...</p>
+        <div class="progress w-50 mt-2" style="height: 6px;">
+            <div class="progress-bar bg-white" role="progressbar" style="width: 0%"></div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container text-center">
+            <p class="m-0">© 2023 NexusStory AI. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOM Elements
+            const dom = {
+                storyForm: document.getElementById('storyForm'),
+                results: document.getElementById('results'),
+                loadingOverlay: document.getElementById('loadingOverlay'),
+                brandStory: document.getElementById('brandStory'),
+                storyTitle: document.getElementById('storyTitle'),
+                storyMeta: document.getElementById('storyMeta'),
+                copyStory: document.getElementById('copyStory'),
+                downloadPdf: document.getElementById('downloadPdf'),
+                downloadDoc: document.getElementById('downloadDoc'),
+                regenerateBtn: document.getElementById('regenerateBtn'),
+                progressBar: document.querySelector('.progress-bar'),
+                nameInput: document.getElementById('name'),
+                websiteInput: document.getElementById('website_url'),
+                taglineInput: document.getElementById('tagline'),
+                toneSelect: document.getElementById('tone'),
+                lengthSelect: document.getElementById('length')
+            };
+
+            // Error Messages
+            const errors = {
+                missingFields: 'Please fill in all required fields.',
+                invalidUrl: 'Please enter a valid website URL (starting with http:// or https://).',
+                networkError: 'Network error. Please check your connection and try again.',
+                serverError: 'Server error. Please try again later.',
+                generationError: 'Failed to generate story. Please try again.'
+            };
+
+            // Initialize
+            init();
+
+            function init() {
+                loadExternalResources();
+                setupEventListeners();
+            }
+
+            function loadExternalResources() {
+                console.log('Resources loaded');
+            }
+
+            function setupEventListeners() {
+                // Form submission
+                dom.storyForm.addEventListener('submit', handleFormSubmit);
+                
+                // Copy story button
+                dom.copyStory.addEventListener('click', copyStoryToClipboard);
+                
+                // Download PDF button
+                dom.downloadPdf.addEventListener('click', generatePdf);
+                
+                // Download DOC button
+                dom.downloadDoc.addEventListener('click', generateDoc);
+                
+                // Regenerate button
+                dom.regenerateBtn.addEventListener('click', () => {
+                    dom.storyForm.dispatchEvent(new Event('submit'));
+                });
+            }
+
+            async function handleFormSubmit(e) {
+                e.preventDefault();
+                
+                // Validate inputs
+                if (!validateForm()) return;
+                
+                // Show loading state
+                showLoading(true);
+                
+                try {
+                    // Create form data
+                    const formData = new FormData(dom.storyForm);
+                    
+                    // Simulate progress (for demo purposes)
+                    simulateProgress();
+                    
+                    // Send request to server
+                    const response = await fetch('/generate_story', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(response.status === 400 ? errors.missingFields : 
+                                      response.status === 500 ? errors.serverError : errors.generationError);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (!data.story_data?.story) {
+                        throw new Error(errors.generationError);
+                    }
+                    
+                    // Display the generated story
+                    displayStory(data.story_data);
+                    
+                } catch (error) {
+                    showError(error.message || errors.generationError);
+                    console.error('Error:', error);
+                } finally {
+                    showLoading(false);
+                }
+            }
+
+            function validateForm() {
+                const name = dom.nameInput.value.trim();
+                const websiteUrl = dom.websiteInput.value.trim();
+                const tagline = dom.taglineInput.value.trim();
+                
+                if (!name || !websiteUrl || !tagline) {
+                    showError(errors.missingFields);
+                    return false;
+                }
+                
+                if (!websiteUrl.startsWith('http://') && !websiteUrl.startsWith('https://')) {
+                    showError(errors.invalidUrl);
+                    return false;
+                }
+                
+                return true;
+            }
+
+            function showLoading(show) {
+                if (show) {
+                    dom.loadingOverlay.classList.remove('d-none');
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    dom.loadingOverlay.classList.add('d-none');
+                    document.body.style.overflow = '';
+                }
+            }
+
+            function simulateProgress() {
+                let width = 0;
+                const interval = setInterval(() => {
+                    if (width >= 100) {
+                        clearInterval(interval);
+                        return;
+                    }
+                    width += 5;
+                    dom.progressBar.style.width = `${width}%`;
+                }, 200);
+            }
+
+            function displayStory(storyData) {
+                // Update title
+                const companyName = dom.nameInput.value;
+                dom.storyTitle.textContent = `${companyName}'s Brand Story`;
+                
+                // Update metadata
+                const tone = dom.toneSelect.value;
+                const length = dom.lengthSelect.value;
+                const wordCount = storyData.metadata?.word_count || storyData.story.split(/\s+/).length;
+                
+                dom.storyMeta.innerHTML = `
+                    <span class="badge bg-primary me-2">${tone.charAt(0).toUpperCase() + tone.slice(1)} Tone</span>
+                    <span class="badge bg-secondary me-2">${wordCount} Words</span>
+                    <span class="badge bg-success">${length.charAt(0).toUpperCase() + length.slice(1)} Length</span>
+                `;
+                
+                // Typewriter effect for story
+                typeWriterEffect(storyData.story, dom.brandStory);
+                
+                // Show results section
+                dom.results.classList.remove('d-none');
+                dom.results.scrollIntoView({ behavior: 'smooth' });
+            }
+
+            function typeWriterEffect(text, element, speed = 10) {
+                element.innerHTML = '';
+                let i = 0;
+                const type = () => {
+                    if (i < text.length) {
+                        element.innerHTML += text.charAt(i);
+                        i++;
+                        setTimeout(type, speed);
+                    }
+                };
+                type();
+            }
+
+            function copyStoryToClipboard() {
+                const storyText = dom.brandStory.textContent;
+                navigator.clipboard.writeText(storyText).then(() => {
+                    showToast('Story copied to clipboard!', 'success');
+                }).catch(err => {
+                    console.error('Failed to copy:', err);
+                    showToast('Failed to copy story', 'error');
+                });
+            }
+
+            async function generatePdf() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                const companyName = dom.nameInput.value;
+                const websiteUrl = dom.websiteInput.value;
+                const tagline = dom.taglineInput.value;
+                const storyText = dom.brandStory.textContent;
+                
+                // Add header
+                doc.setFillColor(99, 102, 241);
+                doc.rect(0, 0, 210, 30, 'F');
+                doc.setFontSize(20);
+                doc.setTextColor(255, 255, 255);
+                doc.text('Brand Story', 105, 20, { align: 'center' });
+                
+                // Add company info
+                doc.setFontSize(12);
+                doc.setTextColor(0, 0, 0);
+                doc.text(`Company: ${companyName}`, 15, 45);
+                doc.text(`Website: ${websiteUrl}`, 15, 55);
+                doc.text(`Tagline: ${tagline}`, 15, 65);
+                
+                // Add story content
+                doc.setFontSize(10);
+                const lines = doc.splitTextToSize(storyText, 180);
+                doc.text(lines, 15, 80);
+                
+                // Add footer
+                const pageCount = doc.internal.getNumberOfPages();
+                for (let i = 1; i <= pageCount; i++) {
+                    doc.setPage(i);
+                    doc.setFillColor(99, 102, 241);
+                    doc.rect(0, 277, 210, 20, 'F');
+                    doc.setFontSize(10);
+                    doc.setTextColor(255, 255, 255);
+                    doc.text(`Page ${i} of ${pageCount}`, 190, 287, { align: 'right' });
+                    doc.text('Generated by NexusStory AI', 20, 287);
+                }
+                
+                // Save the PDF
+                doc.save(`${companyName.replace(/[^a-z0-9]/gi, '_')}_brand_story.pdf`);
+            }
+
+            async function generateDoc() {
+                const storyText = dom.brandStory.textContent;
+                const companyName = dom.nameInput.value;
+                
+                // Create a Blob with the story content
+                const blob = new Blob([storyText], { type: 'application/msword' });
+                const url = URL.createObjectURL(blob);
+                
+                // Create a temporary link and trigger download
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${companyName.replace(/[^a-z0-9]/gi, '_')}_brand_story.doc`;
+                document.body.appendChild(a);
+                a.click();
+                
+                // Cleanup
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 100);
+            }
+
+            function showError(message) {
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-danger alert-dismissible fade show';
+                alert.innerHTML = `
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                
+                const container = dom.storyForm.parentElement;
+                container.insertBefore(alert, dom.storyForm);
+                
+                setTimeout(() => {
+                    alert.classList.remove('show');
+                    setTimeout(() => alert.remove(), 150);
+                }, 5000);
+            }
+
+            function showToast(message, type = 'success') {
+                const toast = document.createElement('div');
+                toast.className = `toast align-items-center text-white bg-${type} border-0`;
+                toast.setAttribute('role', 'alert');
+                toast.setAttribute('aria-live', 'assertive');
+                toast.setAttribute('aria-atomic', 'true');
+                toast.innerHTML = `
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                `;
+                
+                document.body.appendChild(toast);
+                
+                const bsToast = new bootstrap.Toast(toast);
+                bsToast.show();
+                
+                toast.addEventListener('hidden.bs.toast', () => {
+                    toast.remove();
+                });
+            }
+        });
+    </script>
+</body>
+</html>
